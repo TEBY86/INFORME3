@@ -905,7 +905,7 @@
 </div>
 
 <!-- ===== MODAL DE DETALLES ===== -->
-<div id="detailsModal" class="modal">
+<div id="detailsModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
             <h3 id="modal-title">Detalles de la Venta</h3>
@@ -950,7 +950,7 @@
 </div>
 
 <!-- ===== MODAL DE IFRAME ===== -->
-<div id="iframeModal" class="modal">
+<div id="iframeModal" class="modal" style="display: none;">
     <div class="modal-content iframe-modal-content">
         <div class="modal-header">
             <h3 id="iframe-modal-title"></h3>
@@ -985,47 +985,12 @@
 
 <script>
     // ===== CONFIGURACIÓN GLOBAL =====
-    // ZONA DE EDICIÓN: Aquí puedes cambiar las URLs y opciones de menú
-    
-    // URL de la hoja de Google Sheets con los datos de ventas
-    const urlVentas = "https://docs.google.com/spreadsheets/d/1Jsrqu5GwB8fTaetBULmi4txQI2FPLEQUyLZbJ7OR5PQ/gviz/tq?tqx=out:json&sheet=Ventas";
-    
-    // URL de la hoja de Google Sheets con las notificaciones
-    const urlNotificaciones = "https://docs.google.com/spreadsheets/d/1_s_Lq-QBC8-0k-2S42-ASB01iUQ_A8-f-q_L-2jJ2zk/gviz/tq?tqx=out:json&sheet=Notificaciones";
-    
-    // Opciones del menú "Condiciones Comerciales"
-    const opcionesMenuCondiciones = [
-        { nombre: 'Políticas de Despacho', url: 'https://es.wikipedia.org/wiki/Log%C3%ADstica' },
-        { nombre: 'Términos de Servicio', url: 'https://es.wikipedia.org/wiki/T%C3%A9rminos_de_servicio' },
-        { nombre: 'Manual de Producto', url: 'https://es.wikipedia.org/wiki/Manual_de_usuario' },
-        { nombre: 'Guía de Estilo', url: 'https://es.wikipedia.org/wiki/Manual_de_estilo' },
-        { nombre: 'Protocolos de Atención', url: 'https://es.wikipedia.org/wiki/Servicio_de_atenci%C3%B3n_al_cliente' }
-    ];
-    
-    // Opciones del menú "Más"
-    const opcionesMenuMas = [
-        { nombre: 'Reporte Avanzado', url: 'https://es.wikipedia.org/wiki/Business_intelligence' },
-        { nombre: 'Metas de Venta', url: 'https://es.wikipedia.org/wiki/Venta' },
-        { nombre: 'Capacitaciones', url: 'https://es.wikipedia.org/wiki/Capacitaci%C3%B3n' },
-        { nombre: 'Herramientas', url: 'https://es.wikipedia.org/wiki/Herramienta' }
-    ];
-    
-    // URL para nueva venta
-    const urlNuevaVenta = 'https://script.google.com/macros/s/AKfycbx5pVBkIII1wA-toDC5sryro4C52U3nbjloflGMvzYF6fSWenA09OOBJ7hf8zpAHgz-/exec';
-    
-    // ===== VARIABLES GLOBALES =====
-    let allSalesData = [];
-    let allNotificationsData = [];
-    let currentViewData = [];
-    let filtroEstadoActual = '';
-    let filtroMarcaActual = 'all';
-    
-    // ===== INICIALIZACIÓN DE LA APLICACIÓN =====
+// ... existing code ... -->
     document.addEventListener('DOMContentLoaded', () => {
         // CORRECCIÓN: Forzar cierre de modales al cargar
         // Esto soluciona el problema de la "pantalla oscura" al publicar
-        window.closeModal('detailsModal');
-        window.closeModal('iframeModal');
+        // window.closeModal('detailsModal'); // Ya no es necesario al cargar
+        // window.closeModal('iframeModal'); // Ya no es necesario al cargar
 
         aplicarEstilosMovil();
         cargarDatosVentas();
@@ -1246,18 +1211,30 @@
         document.getElementById('modal-cliente-comuna').textContent = comuna;
         
         // Abrir el modal
-        document.getElementById('detailsModal').classList.add('is-open');
+        const modal = document.getElementById('detailsModal');
+        modal.style.display = 'flex'; // FORZAR APERTURA
+        modal.classList.add('is-open');
     }
 
     window.openIframeModal = function(url, title) {
         document.getElementById('iframe-modal-title').textContent = title;
         document.getElementById('modal-iframe-content').src = url;
-        document.getElementById('iframeModal').classList.add('is-open');
+        
+        const modal = document.getElementById('iframeModal');
+        modal.style.display = 'flex'; // FORZAR APERTURA
+        modal.classList.add('is-open');
     }
 
     window.closeModal = function(modalId) {
-        document.getElementById(modalId).classList.remove('is-open');
-        if (modalId === 'iframeModal') document.getElementById('modal-iframe-content').src = 'about:blank';
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('is-open');
+            modal.style.display = 'none'; // FORZAR CIERRE
+        }
+        
+        if (modalId === 'iframeModal') {
+             document.getElementById('modal-iframe-content').src = 'about:blank';
+        }
     }
     
     // ===== MENÚS DESPLEGABLES =====
