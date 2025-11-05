@@ -244,46 +244,70 @@
         font-size: 0.9rem; 
     }
     
-    /* ===== MENÚS DESPLEGABLES ===== */
-    .action-dropdown-menu {
-        position: absolute; 
-        right: 0; 
-        top: calc(100% + 0.5rem);
-        width: 220px; 
-        background-color: white; 
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
-        z-index: 40;
-        border: 1px solid #f3f4f6; 
-        transition: all 0.2s ease-in-out;
-        transform-origin: top right; 
-        opacity: 0; 
-        visibility: hidden;
-        transform: scale(0.95);
-    }
-    
-    .action-dropdown-menu.is-open { 
-        opacity: 1; 
-        visibility: visible; 
-        transform: scale(1); 
-    }
-    
-    .action-dropdown-button {
-        display: block; 
-        width: 100%; 
-        text-align: left;
-        padding: 0.75rem 1.25rem; 
-        font-size: 0.875rem;
-        font-weight: 600; 
-        color: #4b5563;
-        background: none; 
-        border: none; 
-        cursor: pointer;
-    }
-    
-    .action-dropdown-button:hover { 
-        background-color: #f3f4f6; 
-    }
+    /* ----------------------
+   DROPDOWN: action-dropdown-menu
+   ---------------------- */
+
+/* Contenedor del menú desplegable */
+.action-dropdown-menu {
+    position: absolute;                  /* Absoluto respecto al botón */
+    right: 0;                            /* Inicialmente alineado a la derecha */
+    top: calc(100% + 0.5rem);            /* Debajo del botón */
+    width: 220px;                         /* Ancho fijo inicial */
+    background-color: white;             /* Fondo blanco */
+    border-radius: 0.75rem;              /* Bordes redondeados */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); /* Sombra */
+    z-index: 40;                          /* Encima de otros elementos */
+    border: 1px solid #f3f4f6;          /* Borde */
+    transition: all 0.2s ease-in-out;    /* Animación suave */
+    transform-origin: top right;         /* Escala desde la esquina superior derecha */
+    opacity: 0;                          /* Invisible inicialmente */
+    visibility: hidden;                  /* Oculto inicialmente */
+    transform: scale(0.95);              /* Escala inicial menor */
+}
+
+/* Estado abierto del menú */
+.action-dropdown-menu.is-open { 
+    opacity: 1; 
+    visibility: visible; 
+    transform: scale(1); 
+}
+
+/* Botón que activa el dropdown */
+.action-dropdown-button {
+    display: block; 
+    width: 100%; 
+    text-align: left;
+    padding: 0.75rem 1.25rem; 
+    font-size: 0.875rem;
+    font-weight: 600; 
+    color: #4b5563;
+    background: none; 
+    border: none; 
+    cursor: pointer;
+}
+
+/* Efecto hover del botón */
+.action-dropdown-button:hover { 
+    background-color: #f3f4f6; 
+}
+
+/* ----------------------
+   INSTRUCCIONES PARA CONTROL POR PORCENTAJE
+   ---------------------- */
+
+/* Comentarios:
+1. Este CSS pertenece al desplegable "action-dropdown-menu".
+2. Para mover horizontalmente: actualizar 'left' en porcentaje via JS.
+   Ejemplo: menu.style.left = leftPercent + '%';
+3. Para mover verticalmente: actualizar 'top' en porcentaje.
+   Ejemplo: menu.style.top = topPercent + '%';
+4. Para cambiar ancho: menu.style.width = widthPercent + 'px';
+5. Para cambiar alto: menu.style.height = heightPercent + 'px' o 'auto';
+6. Mantener clase 'is-open' para animación y visibilidad.
+7. NO cambiar colores, sombras, bordes ni estilos originales.
+*/
+
     
     /* ===== BOTONES DE ACCIÓN EN TABLA ===== */
     .action-btn-table {
@@ -313,7 +337,8 @@
         transform: scale(1);
         border-color: #3b82f6;
     }
-    
+
+   
     /* ===== SELECT PERSONALIZADO PARA MARCAS ===== */
     .custom-select-trigger {
         display: flex; 
@@ -376,117 +401,147 @@
     }
     
     /* ===== MODALES ===== */
-    .modal {
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        backdrop-filter: blur(5px);
-        padding: 1rem;
-    }
-    
-    .modal.is-open { 
-        display: flex; 
-    }
-    
-    .modal-content {
-        background-color: #ffffff;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        max-width: 500px;
-        width: 90%;
-        height: auto;
-        max-height: 90vh;
-        border-radius: 1.5rem;
-        transform: scale(0.95);
-        opacity: 0;
-        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        border: 1px solid #e5e7eb;
-        display: flex;
-        flex-direction: column;
-        margin: auto;
-        text-align: left;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    
-    .modal.is-open .modal-content {
-        transform: scale(1);
-        opacity: 1;
-    }
-    
-    .modal-header {
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
-        padding: 1rem 1.5rem; 
-        border-bottom: 1px solid #e5e7eb;
-        flex-shrink: 0;
-    }
-    
-    .modal-header h3 { 
-        font-size: 1.25rem; 
-        font-weight: 700; 
-        margin: 0; 
-    }
-    
-    .close-btn { 
-        background: none; 
-        border: none; 
-        cursor: pointer; 
-        font-size: 2rem; 
-        color: #9ca3af; 
-        line-height: 1; 
-    }
-    
-    .modal-body { 
-        padding: 1.5rem 2rem 2rem; 
-    }
-    
-    .modal-body .info-item {
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
-        padding: 0.75rem 0; 
-        border-bottom: 1px solid #f3f4f6; 
-        text-align: left;
-    }
-    
-    .modal-body .info-item:last-child { 
-        border-bottom: none; 
-    }
-    
-    .modal-body .info-item strong {
-        font-weight: 600; 
-        color: #4b5563;
-        display: flex; 
-        align-items: center; 
-        gap: 0.75rem;
-    }
-    
-    .iframe-modal-content {
-        height: 90vh;
-        padding: 0;
-        gap: 0;
-        overflow: hidden;
-        text-align: left;
-    }
-    
-    .iframe-container { 
-        flex-grow: 1; 
-        overflow: hidden; 
-    }
-    
-    .iframe-container iframe { 
-        width: 100%; 
-        height: 100%; 
-        border: 0; 
-    }
+
+/* Contenedor del modal */
+.modal {
+    position: fixed; /* Fijo sobre la ventana, necesario para mover con top/left */
+    top: 0; /* Posición vertical inicial (puede controlarse con porcentaje) */
+    left: 0; /* Posición horizontal inicial (puede controlarse con porcentaje) */
+    width: 100%; /* Ancho completo de la pantalla (puede ajustarse con porcentaje) */
+    height: 100%; /* Alto completo de la pantalla (puede ajustarse con porcentaje) */
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+    display: none; /* Inicialmente oculto, mostrar con clase .is-open */
+    align-items: center; /* Centrado vertical del contenido */
+    justify-content: center; /* Centrado horizontal del contenido */
+    z-index: 1000; /* Encima de otros elementos */
+    backdrop-filter: blur(5px); /* Efecto desenfoque detrás del modal */
+    padding: 1rem; /* Espaciado interno */
+}
+
+/* Mostrar modal */
+.modal.is-open { 
+    display: flex; /* Cambia display a flex para que se vea */
+}
+
+/* Contenido interno del modal */
+.modal-content {
+    background-color: #ffffff; /* Fondo blanco */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Sombra alrededor */
+    max-width: 500px; /* Ancho máximo */
+    width: 90%; /* Ancho relativo al contenedor (puede cambiarse con porcentaje) */
+    height: auto; /* Altura automática según contenido */
+    max-height: 90vh; /* Máximo alto según la ventana */
+    border-radius: 1.5rem; /* Bordes redondeados */
+    transform: scale(0.95); /* Escala inicial, se puede animar */
+    opacity: 0; /* Invisible inicialmente */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Animación suave */
+    border: 1px solid #e5e7eb; /* Borde */
+    display: flex; /* Flex para organizar contenido interno */
+    flex-direction: column; /* Contenido en columna */
+    margin: auto; /* Centrado automático */
+    text-align: left; /* Alineación del texto */
+    overflow-y: auto; /* Scroll vertical si el contenido excede */
+    overflow-x: hidden; /* Oculta scroll horizontal */
+}
+
+/* Mostrar contenido del modal */
+.modal.is-open .modal-content {
+    transform: scale(1); /* Escala final al mostrar */
+    opacity: 1; /* Visible al abrir */
+}
+
+/* Header del modal */
+.modal-header {
+    display: flex; /* Flex para organizar elementos */
+    justify-content: space-between; /* Separar título y botón cerrar */
+    align-items: center; /* Centrar vertical */
+    padding: 1rem 1.5rem; /* Espaciado interno */
+    border-bottom: 1px solid #e5e7eb; /* Separador inferior */
+    flex-shrink: 0; /* No encoger al ajustar tamaño */
+}
+
+/* Título del modal */
+.modal-header h3 { 
+    font-size: 1.25rem; /* Tamaño de fuente */
+    font-weight: 700; /* Negrita */
+    margin: 0; /* Sin margen extra */
+}
+
+/* Botón de cerrar modal */
+.close-btn { 
+    background: none; /* Sin fondo */
+    border: none; /* Sin borde */
+    cursor: pointer; /* Cursor pointer al pasar sobre él */
+    font-size: 2rem; /* Tamaño del icono */
+    color: #9ca3af; /* Color gris */
+    line-height: 1; /* Altura de línea */
+}
+
+/* Body del modal */
+.modal-body { 
+    padding: 1.5rem 2rem 2rem; /* Espaciado interno */
+}
+
+/* Item de información dentro del body */
+.modal-body .info-item {
+    display: flex; /* Flex para separar texto e íconos */
+    justify-content: space-between; /* Separación */
+    align-items: center; /* Centrado vertical */
+    padding: 0.75rem 0; /* Espaciado vertical */
+    border-bottom: 1px solid #f3f4f6; /* Separador entre items */
+    text-align: left; /* Texto alineado a la izquierda */
+}
+
+/* Último item sin borde inferior */
+.modal-body .info-item:last-child { 
+    border-bottom: none; 
+}
+
+/* Texto destacado dentro de item */
+.modal-body .info-item strong {
+    font-weight: 600; /* Negrita */
+    color: #4b5563; /* Color gris oscuro */
+    display: flex; /* Flex para alinear íconos o elementos */
+    align-items: center; /* Centrado vertical */
+    gap: 0.75rem; /* Espacio entre elementos */
+}
+
+/* Contenido iframe dentro del modal */
+.iframe-modal-content {
+    height: 90vh; /* Alto del iframe */
+    padding: 0; /* Sin padding */
+    gap: 0; /* Sin espacio entre hijos */
+    overflow: hidden; /* Ocultar overflow */
+    text-align: left; /* Alineación izquierda */
+}
+
+/* Contenedor del iframe */
+.iframe-container { 
+    flex-grow: 1; /* Ocupa todo el espacio disponible */
+    overflow: hidden; /* Ocultar overflow */
+}
+
+/* Estilo del iframe */
+.iframe-container iframe { 
+    width: 100%; /* Ancho completo */
+    height: 100%; /* Alto completo */
+    border: 0; /* Sin borde */
+}
+
+/* ======================
+   INSTRUCCIONES PARA CONTROL POR PORCENTAJE
+   ====================== */
+
+/* Comentarios:
+- Puedes controlar la posición del modal con:
+    modal.style.left = leftPercent + '%';
+    modal.style.top = topPercent + '%';
+- Puedes controlar ancho y alto del modal-content con:
+    modalContent.style.width = widthPercent + '%';
+    modalContent.style.height = heightPercent + 'px' o 'auto';
+- Mantener todas las propiedades de color, borde y sombra para no perder el diseño.
+- Mantener la clase .is-open para animación y visibilidad.
+*/
     
     /* ===== BARRAS DE DESPLAZAMIENTO ===== */
     .modal-content::-webkit-scrollbar,
@@ -791,8 +846,8 @@
     top: 50%;                    /* Posición inicial vertical */
     left: 50%;                   /* Posición inicial horizontal */
     transform: translate(-50%, -50%); /* Centrado exacto */
-    width: 100%;                 /* Ocupa toda la pantalla */
-    height: 100%;                /* Ocupa toda la pantalla */
+    width: 90%;                 /* Ocupa toda la pantalla */
+    height: 90%;                /* Ocupa toda la pantalla */
     z-index: 999;                /* Encima de todo */
     background: rgba(0,0,0,0.3); /* Fondo semitransparente */
 }
