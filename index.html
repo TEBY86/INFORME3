@@ -268,8 +268,8 @@
     .modal-content {
         background-color: #ffffff;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        width: 100%;
-        max-width: 500px; /* Ancho de un dispositivo móvil */
+        /* width: 100%; */ /* <-- CORRECCIÓN: Eliminado a petición del usuario */
+        max-width: 500px; /* Ancho máximo */
         height: auto;
         max-height: 90vh;
         border-radius: 1.5rem; /* Bordes redondeados en todas las esquinas */
@@ -280,7 +280,8 @@
         display: flex;
         flex-direction: column;
         margin: auto;
-        text-align: center;
+        /* text-align: center; */ /* <-- CAMBIADO */
+        text-align: left; /* <-- A la izquierda para un look más profesional */
         overflow-y: auto;
         overflow-x: hidden; /* Previene scroll horizontal EN el modal */
     }
@@ -531,17 +532,35 @@
             border-radius: 0;
         }
         
+        /* CORRECCIÓN: Se elimina el override de .modal#detailsModal .modal-content.
+          Los estilos base (width: 100%, max-width: 500px, margin: auto) 
+          junto con el padding: 1rem del .modal wrapper ya manejan 
+          el centrado perfectamente.
+        */
+        /*
         .modal#detailsModal .modal-content {
-            max-width: 100%; /* Forzamos a respetar el padding del wrapper */
+            max-width: 100%;
             width: 100%; 
         }
+        */
 
-        /* CORRECCIÓN: Evita que los desplegables se desborden */
+        /* CORRECCIÓN: Evita que TODOS los desplegables se desborden.
+          Se anclan los menús de la izquierda (Condiciones, Marcas) a la izquierda
+          y los de la derecha (Notificaciones, Más) a la derecha.
+        */
         #notificationsDropdown,
         #moreActionsDropdown {
             right: 0.5rem !important; /* Anclamos a la derecha de la pantalla */
             left: auto !important; /* Reseteamos left */
             width: 280px !important; /* Ancho fijo y seguro */
+        }
+
+        #commercialConditionsDropdown,
+        #brandFilterOptions {
+            left: 0.5rem !important; /* Anclamos a la izquierda de la pantalla */
+            right: auto !important; /* Reseteamos right */
+            width: calc(100vw - 1rem) !important; /* Ancho completo menos padding */
+            max-width: 320px; /* Ancho máximo seguro */
         }
     }
   </style>
