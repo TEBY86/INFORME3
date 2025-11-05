@@ -1011,7 +1011,7 @@
     ];
     
     // URL para nueva venta
-    const urlNuevaVenta = 'https://script.google.com/macros/s/AKfycbzJZ4y28c1gJCKC-VYmjal9JfAHAO6Ze03DbfSxV9VpahgDFCk8iUh89VfVJjP6YmG-/exec';
+    const urlNuevaVenta = 'https://script.google.com/macros/s/AKfycbx5pVBkIII1wA-toDC5sryro4C52U3nbjloflGMvzYF6fSWenA09OOBJ7hf8zpAHgz-/exec';
     
     // ===== VARIABLES GLOBALES =====
     let allSalesData = [];
@@ -1022,6 +1022,11 @@
     
     // ===== INICIALIZACIÓN DE LA APLICACIÓN =====
     document.addEventListener('DOMContentLoaded', () => {
+        // CORRECCIÓN: Forzar cierre de modales al cargar
+        // Esto soluciona el problema de la "pantalla oscura" al publicar
+        window.closeModal('detailsModal');
+        window.closeModal('iframeModal');
+
         aplicarEstilosMovil();
         cargarDatosVentas();
         inicializarNotificaciones();
