@@ -517,7 +517,7 @@
         }
 
         /* CORRECCIÓN: Forzar centrado de TODOS los modales en móvil */
-        .modal {
+        .modal.is-open { /* <-- CORREGIDO: Se aplica a .is-open, no a .modal base */
             /* Anulamos flexbox en móvil para un centrado más simple */
             display: block; 
             padding-top: 10vh; /* Un espacio superior para que no quede pegado arriba */
@@ -529,11 +529,9 @@
 
         /* CORRECCIÓN: Evita que los modales se desborden */
         .modal#detailsModal {
-            /* padding: 1rem; */ /* Mantenemos padding para el modal de detalles */
-            /* MODIFICADO: Se ajusta para heredar el padding-top de 10vh de .modal */
-            padding-left: 1rem;
-            padding-right: 1rem;
-            padding-bottom: 1rem;
+            /* MODIFICADO: Se restaura el padding base y se asegura el padding-top */
+            padding: 1rem;
+            padding-top: 10vh; /* Se asegura el padding-top de la corrección */
         }
         .modal#iframeModal {
             padding: 0; /* Sin padding para el modal de iframe (pantalla completa) */
