@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -399,7 +400,7 @@
         background-color: #ffffff;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         max-width: 500px;
-        width: 90%; /* Añadido para mejor responsividad */
+        width: 90%;
         height: auto;
         max-height: 90vh;
         border-radius: 1.5rem;
@@ -777,9 +778,7 @@
             margin: 0 auto;
         }
         
-        /* ===== CORRECCIÓN: CENTRADO DE MODALES EN MÓVIL ===== */
         .modal {
-            /* Usamos flex para centrar en móvil */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -787,7 +786,6 @@
         }
         
         .modal-content {
-            /* Aseguramos que el modal tenga un ancho adecuado */
             width: 95% !important;
             max-width: 95% !important;
             margin: 0 auto;
@@ -805,7 +803,6 @@
             border-radius: 0;
         }
         
-        /* ===== CORRECCIÓN: POSICIONAMIENTO DE DESPLEGABLES EN MÓVIL ===== */
         #notificationsDropdown,
         #moreActionsDropdown {
             right: 0.5rem !important;
@@ -905,7 +902,7 @@
 </div>
 
 <!-- ===== MODAL DE DETALLES ===== -->
-<div id="detailsModal" class="modal" style="display: none;">
+<div id="detailsModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <h3 id="modal-title">Detalles de la Venta</h3>
@@ -950,7 +947,7 @@
 </div>
 
 <!-- ===== MODAL DE IFRAME ===== -->
-<div id="iframeModal" class="modal" style="display: none;">
+<div id="iframeModal" class="modal">
     <div class="modal-content iframe-modal-content">
         <div class="modal-header">
             <h3 id="iframe-modal-title"></h3>
@@ -985,12 +982,56 @@
 
 <script>
     // ===== CONFIGURACIÓN GLOBAL =====
-// ... existing code ... -->
+    // ZONA DE EDICIÓN: Aquí puedes cambiar las URLs y opciones de menú
+    
+    // URL de la hoja de Google Sheets con los datos de ventas
+    const urlVentas = "https://docs.google.com/spreadsheets/d/1Jsrqu5GwB8fTaetBULmi4txQI2FPLEQUyLZbJ7OR5PQ/gviz/tq?tqx=out:json&sheet=Ventas";
+    
+    // URL de la hoja de Google Sheets con las notificaciones
+    const urlNotificaciones = "https://docs.google.com/spreadsheets/d/1_s_Lq-QBC8-0k-2S42-ASB01iUQ_A8-f-q_L-2jJ2zk/gviz/tq?tqx=out:json&sheet=Notificaciones";
+    
+    // Opciones del menú "Condiciones Comerciales"
+    const opcionesMenuCondiciones = [
+        { nombre: 'Políticas de Despacho', url: 'https://es.wikipedia.org/wiki/Log%C3%ADstica' },
+        { nombre: 'Términos de Servicio', url: 'https://es.wikipedia.org/wiki/T%C3%A9rminos_de_servicio' },
+        { nombre: 'Manual de Producto', url: 'https://es.wikipedia.org/wiki/Manual_de_usuario' },
+        { nombre: 'Guía de Estilo', url: 'https://es.wikipedia.org/wiki/Manual_de_estilo' },
+        { nombre: 'Protocolos de Atención', url: 'https://es.wikipedia.org/wiki/Servicio_de_atenci%C3%B3n_al_cliente' }
+    ];
+    
+    // Opciones del menú "Más"
+    const opcionesMenuMas = [
+        { nombre: 'Reporte Avanzado', url: 'https://es.wikipedia.org/wiki/Business_intelligence' },
+        { nombre: 'Metas de Venta', url: 'https://es.wikipedia.org/wiki/Venta' },
+        { nombre: 'Capacitaciones', url: 'https://es.wikipedia.org/wiki/Capacitaci%C3%B3n' },
+        { nombre: 'Herramientas', url: 'https://es.wikipedia.org/wiki/Herramienta' }
+    ];
+    
+    // URL para nueva venta
+    const urlNuevaVenta = 'https://script.google.com/macros/s/AKfycbx5pVBkIII1wA-toDC5sryro4C52U3nbjloflGMvzYF6fSWenA09OOBJ7hf8zpAHgz-/exec';
+    
+    // ===== VARIABLES GLOBALES =====
+    let allSalesData = [];
+    let allNotificationsData = [];
+    let currentViewData = [];
+    let filtroEstadoActual = '';
+    let filtroMarcaActual = 'all';
+    
+    // ===== INICIALIZACIÓN DE LA APLICACIÓN =====
     document.addEventListener('DOMContentLoaded', () => {
-        // CORRECCIÓN: Forzar cierre de modales al cargar
-        // Esto soluciona el problema de la "pantalla oscura" al publicar
-        // window.closeModal('detailsModal'); // Ya no es necesario al cargar
-        // window.closeModal('iframeModal'); // Ya no es necesario al cargar
+        // CORRECCIÓN CRÍTICA: Forzar cierre de TODOS los modales al cargar
+        const todosLosModales = document.querySelectorAll('.modal');
+        todosLosModales.forEach(modal => {
+            modal.classList.remove('is-open');
+            modal.style.display = 'none';
+        });
+        
+        // Cerrar también el chat y dropdowns
+        const chatWidget = document.getElementById('chat-widget');
+        if (chatWidget) chatWidget.classList.remove('is-open');
+        
+        const dropdowns = document.querySelectorAll('.action-dropdown-menu, .custom-select-options');
+        dropdowns.forEach(dd => dd.classList.remove('is-open'));
 
         aplicarEstilosMovil();
         cargarDatosVentas();
@@ -1194,25 +1235,19 @@
         const rowData = currentViewData[index];
         const [id, , , , rut, nombre, tel, comuna, vendedorId] = rowData;
         
-        // Título del Modal
         document.getElementById('modal-title').textContent = `Detalle Venta #${id}`;
         
-        // Rellenar datos modulares
         const imgUrl = `https://placehold.co/100x100/EFEFEF/333333?text=${vendedorId.charAt(0)}`;
         document.getElementById('modal-vendedor-img').src = imgUrl;
         
-        // Nombre Vendedor
         document.getElementById('modal-vendedor-nombre').textContent = vendedorId;
-        
-        // Datos Cliente
         document.getElementById('modal-cliente-nombre').textContent = nombre;
         document.getElementById('modal-cliente-rut').textContent = rut;
         document.getElementById('modal-cliente-tel').textContent = tel;
         document.getElementById('modal-cliente-comuna').textContent = comuna;
         
-        // Abrir el modal
         const modal = document.getElementById('detailsModal');
-        modal.style.display = 'flex'; // FORZAR APERTURA
+        modal.style.display = 'flex';
         modal.classList.add('is-open');
     }
 
@@ -1221,7 +1256,7 @@
         document.getElementById('modal-iframe-content').src = url;
         
         const modal = document.getElementById('iframeModal');
-        modal.style.display = 'flex'; // FORZAR APERTURA
+        modal.style.display = 'flex';
         modal.classList.add('is-open');
     }
 
@@ -1229,7 +1264,7 @@
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.remove('is-open');
-            modal.style.display = 'none'; // FORZAR CIERRE
+            modal.style.display = 'none';
         }
         
         if (modalId === 'iframeModal') {
@@ -1278,7 +1313,6 @@
             closeAllDropdowns(); 
             if(isOpening) {
                 menu.classList.add('is-open');
-                // Al abrir, se oculta el indicador de nuevas notificaciones
                 document.getElementById('notification-badge').style.display = 'none';
             }
         });
@@ -1290,7 +1324,6 @@
             const texto = await res.text();
             const json = parseGoogleSheetJSON(texto);
 
-            // Suponemos columnas: 0:ID, 1:Mensaje, 2:Fecha, 3:Leido
             allNotificationsData = json.table.rows.map(f => f.c.map(c => c ? c.v : ''));
             
             renderizarBandejaDeEntrada();
@@ -1314,7 +1347,6 @@
             const [id, mensaje, fecha, leido] = notif;
             const item = document.createElement('div');
             item.className = 'notification-item';
-            // Si el mensaje no está leído (es 'FALSE'), se muestra en negrita
             if (String(leido).toUpperCase() === 'FALSE') {
                 item.classList.add('unread');
             }
@@ -1327,7 +1359,6 @@
     }
 
     function revisarNotificacionesNuevas() {
-        // Suponemos que la columna 3 (índice 3) indica si el mensaje fue leído
         const hayNuevas = allNotificationsData.some(notif => String(notif[3]).toUpperCase() === 'FALSE');
         document.getElementById('notification-badge').style.display = hayNuevas ? 'block' : 'none';
     }
@@ -1347,19 +1378,15 @@
             closeAllDropdowns();
         });
 
-        // Configuración de botones del chat
         document.getElementById('whatsapp-btn').addEventListener('click', () => {
-            // Reemplaza con tu URL de WhatsApp
             window.open('https://api.whatsapp.com/send?phone=TU_NUMERO_AQUI', '_blank');
         });
         
         document.getElementById('factibilidad-btn').addEventListener('click', () => {
-            // Reemplaza con tu URL de Factibilidad
             window.openIframeModal('https://es.wikipedia.org/wiki/Factibilidad', 'Factibilidad');
         });
         
         document.getElementById('assistant-btn').addEventListener('click', () => {
-            // Reemplaza con tu URL de Asistente
             window.openIframeModal('https://es.wikipedia.org/wiki/Asistente_virtual', 'Asistente');
         });
     }
