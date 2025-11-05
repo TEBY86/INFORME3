@@ -516,9 +516,24 @@
             margin: 0 auto; /* 6. Centramos si el max-width se activa */
         }
 
+        /* CORRECCIÓN: Forzar centrado de TODOS los modales en móvil */
+        .modal {
+            /* Anulamos flexbox en móvil para un centrado más simple */
+            display: block; 
+            padding-top: 10vh; /* Un espacio superior para que no quede pegado arriba */
+        }
+        .modal-content {
+            /* Usamos margin auto horizontal para centrar el bloque */
+            margin: 0 auto; 
+        }
+
         /* CORRECCIÓN: Evita que los modales se desborden */
         .modal#detailsModal {
-            padding: 1rem; /* Mantenemos padding para el modal de detalles */
+            /* padding: 1rem; */ /* Mantenemos padding para el modal de detalles */
+            /* MODIFICADO: Se ajusta para heredar el padding-top de 10vh de .modal */
+            padding-left: 1rem;
+            padding-right: 1rem;
+            padding-bottom: 1rem;
         }
         .modal#iframeModal {
             padding: 0; /* Sin padding para el modal de iframe (pantalla completa) */
