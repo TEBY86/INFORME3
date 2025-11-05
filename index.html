@@ -529,14 +529,9 @@
 
         /* CORRECCIÓN: Evita que los modales se desborden */
         .modal#detailsModal {
-            /* MODIFICADO: El padding lateral ahora se controla desde el panel JS (aplicarEstilosMovil) */
-            /* padding: 1rem; */ 
+            /* MODIFICADO: Se restaura el padding base y se asegura el padding-top */
+            padding: 1rem;
             padding-top: 10vh; /* Se asegura el padding-top de la corrección */
-            padding-bottom: 1rem; /* Añadido para consistencia */
-
-            /* Default por si JS falla. El panel JS (aplicarEstilosMovil) anulará esto. */
-            padding-left: 1rem;
-            padding-right: 1rem;
         }
         .modal#iframeModal {
             padding: 0; /* Sin padding para el modal de iframe (pantalla completa) */
@@ -760,17 +755,9 @@
         const configDisenoMovil = {
             paddingCabecera: '1rem',
             espacioEntreBotones: '0.75rem',
-            // paddingModales: '1rem', // Eliminado por ser redundante y conflictivo
-
-            // ===== PANEL DE AJUSTE MODAL MÓVIL (NUEVO) =====
-            // Aquí puedes ajustar el espacio a los lados del modal de detalles en móviles.
-            // '1rem' = (aprox 16px). Prueba '0.5rem' (modal más ancho) o '1.5rem' (modal más estrecho).
-            margenLateralModalMovil: '1rem'
-            // ===============================================
+            paddingModales: '1rem'
         };
-        // const { paddingCabecera, espacioEntreBotones, paddingModales } = configDisenoMovil;
-        const { paddingCabecera, espacioEntreBotones, margenLateralModalMovil } = configDisenoMovil;
-
+        const { paddingCabecera, espacioEntreBotones, paddingModales } = configDisenoMovil;
         const css = `
             @media (max-width: 768px) {
                 .controls-header {
@@ -780,20 +767,8 @@
                 .control-group {
                     gap: ${espacioEntreBotones};
                 }
-                /*
                 .modal {
-                    padding: ${paddingModales}; // ELIMINADO
-                }
-                */
-
-                /* PANEL DE AJUSTE MANUAL (MÓVIL): MÁRGENES DEL MODAL
-                  Esta regla anula el 'padding-left' y 'padding-right' 
-                  definidos en la hoja de estilos principal.
-                  Ajusta la variable 'margenLateralModalMovil' arriba.
-                */
-                .modal#detailsModal {
-                    padding-left: ${margenLateralModalMovil};
-                    padding-right: ${margenLateralModalMovil};
+                    padding: ${paddingModales};
                 }
             }
         `;
