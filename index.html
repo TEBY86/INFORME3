@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informe Web - Ventas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    /*
+      NUEVA REGLA: Previene el desbordamiento horizontal en toda la página.
+    */
+    html, body {
+        overflow-x: hidden;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f0f2f5;
+        padding: 1rem;
+        margin: 0;
+    }
+    .app-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background-color: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(20px);
+        border-radius: 1.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+    }
+    .loading-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(255,255,255,0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        transition: opacity 0.3s;
+    }
+    .loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .spinner {
+        width: 56px; height: 56px;
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .controls-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .control-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .control-button {
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background-color: white;
+        color: #4b5563;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        font-size: 0.875rem; font-weight: 600;
+        cursor: pointer; transition: all 0.2s ease-in-out;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    .control-button:hover {
+        background-color: #f9fafb;
+        transform: translateY(-1px);
+    }
+    .control-button.primary {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    .control-button.primary:hover {
+        background-color: #2563eb;
+    }
+    .search-filter-group {
+        display: flex; align-items: center;
+        border: 1px solid #d1d5db; border-radius: 9999px;
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease-in-out;
+    }
+    .search-filter-group:focus-within {
+        border-color: #6b7280;
+        box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
+    }
+    .search-filter-group .search-input {
+        border: none; background: transparent; outline: none;
+        padding: 0.75rem; font-size: 0.875rem;
+        width: 180px;
+    }
+    .search-filter-group .separator {
+        width: 1px; height: 24px; background-color: #e5e7eb;
+    }
+    .table-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1rem 2.5rem;
+        flex-wrap: wrap; gap: 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .nav-tabs {
+        display: flex; background-color: #f3f4f6;
+        padding: 0.25rem; border-radius: 0.75rem;
+        overflow-x: auto;
+    }
+    .tab {
+        padding: 0.5rem 1rem; cursor: pointer; border-radius: 0.5rem;
+        font-size: 0.875rem; font-weight: 600;
+        color: #6b7280; transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .tab.active {
+        background-color: white;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        color: #1f2937;
+    }
+    .table-wrapper { padding: 1rem 2.5rem 2.5rem; overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0 1rem; }
+    .data-table th, .data-table td { padding: 1.5rem 1.25rem; text-align: left; vertical-align: middle; }
+    .data-table th { font-size: 0.8rem; font-weight: 700; color: #6b7280; text-transform: uppercase; }
+    .data-table th:not(:nth-child(4)):not(:nth-child(5)),
+    .data-table td:not(:nth-child(4)):not(:nth-child(5)) {
+        text-align: center;
+    }
+    .data-table tr {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        position: relative;
+    }
+    .data-table tr:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.07); }
+    .data-table td { background-color: white; }
+    .data-table tr td:first-child { border-top-left-radius: 0.75rem; border-bottom-left-radius: 0.75rem; }
+    .data-table tr td:last-child { border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem; }
+    
+    .logo-container {
+        width: 44px; height: 44px; border-radius: 50%;
+        display: flex; justify-content: center; align-items: center;
+        font-size: 1.1rem; font-weight: 700; color: white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0; margin: 0 auto;
+    }
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 0.4rem 1.2rem; border-radius: 9999px;
+        font-size: 0.75rem; font-weight: 600;
+    }
+    .status-badge.despacho { background-color: #e9d5ff; color: #9333ea; }
+    .status-badge.pendiente { background-color: #fffbe6; color: #d97706; }
+    .status-badge.pre-ingreso { background-color: #e0f2fe; color: #0284c7; }
+    .status-badge.rechazado { background-color: #fee2e2; color: #dc2626; }
+    .status-badge.finalizado { background-color: #dcfce7; color: #16a34a; }
+    
+    .client-info span {
+        display: flex; align-items: center; gap: 0.5rem;
+        font-size: 0.875rem; color: #4b5563;
+    }
+    .client-info span.name { font-weight: 600; color: #1f2937; font-size: 0.9rem; }
+    
+    .action-dropdown-menu {
+        position: absolute; right: 0; top: calc(100% + 0.5rem);
+        width: 220px; background-color: white; border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 40;
+        border: 1px solid #f3f4f6; transition: all 0.2s ease-in-out;
+        transform-origin: top right; opacity: 0; visibility: hidden;
+        transform: scale(0.95);
+    }
+    .action-dropdown-menu.is-open { opacity: 1; visibility: visible; transform: scale(1); }
+    .action-dropdown-button {
+        display: block; width: 100%; text-align: left;
+        padding: 0.75rem 1.25rem; font-size: 0.875rem;
+        font-weight: 600; color: #4b5563;
+        background: none; border: none; cursor: pointer;
+    }
+    .action-dropdown-button:hover { background-color: #f3f4f6; }
+
+    /* Estilos para el botón de Acciones en la tabla */
+    .action-btn-table {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        background-color: white;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    .action-btn-table:hover {
+        background-color: #f0f2f5;
+        transform: scale(1.1);
+        color: #3b82f6;
+    }
+    .action-btn-table:active {
+        background-color: #3b82f6;
+        color: white;
+        transform: scale(1);
+        border-color: #3b82f6;
+    }
+
+    /* Custom Select for Brands */
+    .custom-select-trigger {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.75rem 1rem 0.75rem 0.75rem;
+        font-size: 0.875rem; color: #4b5563;
+        background-color: transparent; cursor: pointer;
+        border: none; font-weight: 500;
+    }
+    .custom-select-trigger .trigger-content {
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .custom-select-options {
+        position: absolute; top: calc(100% + 1rem); left: 0;
+        background-color: white; border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        z-index: 50; border: 1px solid #f3f4f6;
+        overflow: auto; max-height: 250px;
+        opacity: 0; visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s ease-in-out;
+        min-width: 220px;
+    }
+    .custom-select-options.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .custom-select-option {
+        padding: 0.75rem 1.25rem; cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 0.875rem; font-weight: 500;
+    }
+    .custom-select-option:hover { background-color: #f3f4f6; }
+    .custom-select-option.selected { font-weight: 600; color: #1f2937; }
+
+    /* Estilos de Modales */
+    .modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center; /* Centrado vertical */
+        justify-content: center; /* Centrado horizontal */
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+        padding: 1rem;
+    }
+    .modal.is-open { display: flex; }
+    .modal-content {
+        background-color: #ffffff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        width: 100%;
+        max-width: 500px; /* Ancho de un dispositivo móvil */
+        height: auto;
+        max-height: 90vh;
+        border-radius: 1.5rem; /* Bordes redondeados en todas las esquinas */
+        transform: scale(0.95);
+        opacity: 0;
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        text-align: center;
+        overflow-y: auto;
+        overflow-x: hidden; /* Previene scroll horizontal EN el modal */
+    }
+    .modal.is-open .modal-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+    .modal-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb;
+        flex-shrink: 0;
+    }
+    .modal-header h3 { font-size: 1.25rem; font-weight: 700; margin: 0; }
+    .close-btn { background: none; border: none; cursor: pointer; font-size: 2rem; color: #9ca3af; line-height: 1; }
+    .modal-body { padding: 1.5rem 2rem 2rem; }
+    .modal-body .info-item {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; text-align: left;
+    }
+    .modal-body .info-item:last-child { border-bottom: none; }
+    .modal-body .info-item strong {
+        font-weight: 600; color: #4b5563;
+        display: flex; align-items: center; gap: 0.75rem;
+    }
+    .iframe-modal-content {
+        height: 90vh;
+        padding: 0;
+        gap: 0;
+        overflow: hidden; /* El scroll lo maneja el iframe-container */
+        text-align: left;
+    }
+    .iframe-container { flex-grow: 1; overflow: hidden; } /* Se elimina el scroll del contenedor para dejar solo el de la página interna */
+    .iframe-container iframe { width: 100%; height: 100%; border: 0; }
+    
+    /* Estilos para la barra de desplazamiento moderna y delgada */
+    .modal-content::-webkit-scrollbar,
+    #notificationsDropdown::-webkit-scrollbar,
+    .table-wrapper::-webkit-scrollbar,
+    .nav-tabs::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+
+    .modal-content::-webkit-scrollbar-track,
+    #notificationsDropdown::-webkit-scrollbar-track,
+    .table-wrapper::-webkit-scrollbar-track,
+    .nav-tabs::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb,
+    #notificationsDropdown::-webkit-scrollbar-thumb,
+    .table-wrapper::-webkit-scrollbar-thumb,
+    .nav-tabs::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+
+    .modal-content:hover::-webkit-scrollbar-thumb,
+    #notificationsDropdown:hover::-webkit-scrollbar-thumb,
+    .table-wrapper:hover::-webkit-scrollbar-thumb,
+    .nav-tabs:hover::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.2);
+    }
+
+    .modal-content,
+    #notificationsDropdown,
+    .table-wrapper,
+    .nav-tabs {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0,0,0,0.2) transparent;
+    }
+
+    .fab {
+        position: fixed; bottom: 2rem; right: 2rem;
+        width: 4rem; height: 4rem; background-color: #25D366;
+        color: white; border-radius: 50%; border: none;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        cursor: pointer; z-index: 1010;
+        transition: transform 0.2s ease-in-out;
+    }
+    .fab:hover { transform: scale(1.1); }
+    .chat-widget {
+        position: fixed; bottom: 7rem; right: 2rem;
+        width: 360px; background-color: white;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        overflow: hidden; display: flex; flex-direction: column;
+        z-index: 1000; transition: all 0.3s ease-in-out;
+        opacity: 0; visibility: hidden; transform: translateY(20px);
+    }
+    .chat-widget.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .chat-header {
+        background-color: #128C7E; color: white; padding: 1rem;
+        display: flex; justify-content: space-between; align-items: center;
+        font-weight: 600;
+    }
+    .chat-body { padding: 1rem; flex-grow: 1; }
+    #chat-options { display: flex; flex-direction: column; gap: 1rem; }
+    #chat-options button {
+        width: 100%; padding: 0.75rem; border-radius: 0.5rem;
+        border: 1px solid transparent; font-weight: 600; cursor: pointer;
+    }
+    #whatsapp-btn { background-color: #25D366; color: white; }
+    #factibilidad-btn { background-color: #3b82f6; color: white; }
+    #assistant-btn { background-color: #f0f2f5; color: #1f2937; }
+    
+    .notification-badge {
+        position: absolute; top: -2px; right: -2px;
+        width: 8px; height: 8px; background-color: red;
+        border-radius: 50%; border: 2px solid white;
+    }
+    #notificationsDropdown { width: 350px; max-height: 400px; overflow-y: auto; }
+    .notification-item {
+        padding: 0.75rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .notification-item:last-child { border-bottom: none; }
+    .notification-item p { margin: 0; color: #4b5563; font-size: 0.875rem; }
+    .notification-item span { font-size: 0.75rem; color: #9ca3af; }
+    .notification-item.unread p { font-weight: 600; color: #1f2937; }
+
+
+    .relative { position: relative; }
+
+    /* ===== ESTILOS PARA MÓVILES (Ajustes adicionales) ===== */
+    @media (max-width: 768px) {
+        body { padding: 0; font-size: 14px; }
+        .app-container { border-radius: 0; box-shadow: none; border: none; background-color: #f0f2f5; }
+        .controls-header { 
+            flex-direction: column; 
+            align-items: stretch; 
+            padding: var(--padding-cabecera, 1rem);
+            gap: var(--espacio-entre-botones, 1rem);
+        }
+        .control-group { 
+            flex-wrap: wrap;
+            gap: var(--espacio-entre-botones, 0.75rem);
+        }
+
+        .search-filter-group { 
+            width: 100%;
+        }
+
+        /* ===== CORRECCIÓN: DE GRID A FLEXBOX =====
+          Se elimina 'display: grid' y se reemplaza con 'flex-grow' y 'width'
+          para máxima compatibilidad (ej. Google Sites).
+        */
+        .control-group:last-of-type {
+            display: flex; /* Aseguramos que sea flex */
+            flex-wrap: wrap; /* Permitimos que los elementos salten de línea */
+            gap: var(--espacio-entre-botones, 0.75rem);
+        }
+        
+        #commercialConditionsContainer { 
+            width: 100%; /* Ocupa toda la línea */
+        }
+        #btn-nueva-venta { 
+            width: 100%; /* Ocupa toda la línea */
+            order: 99; /* Asegura que vaya al final */
+        }
+        
+        /* ===== NUEVA CORRECCIÓN: Anchos Explícitos (CSS Bulletproof) =====
+           Se reemplaza flex-grow (que falla en Google Sites) 
+           por anchos explícitos usando calc() para asegurar la fila.
+        */
+        #btn-descargar-excel { 
+            /* Se elimina flex-grow: 2; flex-basis: 0; */
+            width: calc(50% - 0.4rem); /* 50% menos un poco de espacio para el gap */
+            flex-grow: 0; /* Desactivamos el crecimiento */
+        }
+        #notificationsContainer { 
+            /* Se elimina flex-grow: 1; flex-basis: 0; */
+            width: calc(25% - 0.4rem); /* 25% menos un poco de espacio */
+            flex-grow: 0; /* Desactivamos el crecimiento */
+        }
+        #moreActionsContainer { 
+            /* Se elimina flex-grow: 1; flex-basis: 0; */
+            width: calc(25% - 0.4rem); /* 25% menos un poco de espacio */
+            flex-grow: 0; /* Desactivamos el crecimiento */
+        }
+        /* Fin de la corrección */
+
+
+        #btn-descargar-excel, #notificationsTrigger, #moreActionsTrigger {
+            width: auto;
+            padding: 0.75rem;
+            justify-content: center;
+        }
+
+        #btn-descargar-excel .button-text, #moreActionsTrigger .button-text {
+            display: none;
+        }
+        
+        #notificationsTrigger .button-text { display: none; }
+        
+        #btn-descargar-excel > svg, #notificationsTrigger > div > svg, #moreActionsTrigger > svg {
+            margin: 0 auto;
+        }
+
+        .table-header { 
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table-wrapper { 
+            overflow-x: auto; 
+            padding: 0 1rem 1rem 1rem;
+        }
+        
+        .data-table {
+            min-width: 800px;
+        }
+        .data-table th, .data-table td {
+            white-space: nowrap;
+        }
+        
+        .fab { bottom: 1.5rem; right: 1.5rem; }
+        
+        /*
+          REGLA MODIFICADA: Centra el chat en móvil y asegura que no se desborde.
+        */
+        .chat-widget { 
+            left: 50%; /* 1. Centrar horizontalmente */
+            transform: translateX(-50%); /* 2. Ajustar centrado */
+            bottom: 6rem; 
+            width: 95vw; /* 3. Usar 95% del ancho de pantalla */
+            max-width: 360px; /* 4. Ancho máximo profesional */
+            right: auto; /* 5. Anular el 'right' de escritorio */
+        }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; font-weight: 600; color: #4b5563;">Cargando datos...</p>
+    </div>
+    <div class="controls-header">
+        <div class="control-group">
+            <div class="search-filter-group">
+                <svg style="color: #9ca3af; margin-left: 1rem; width: 1.25rem; height: 1.25rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <input type="text" id="searchInput" placeholder="Buscar por cliente..." class="search-input">
+                <div class="separator"></div>
+                <div id="brandFilterContainer" class="relative"></div>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="relative dropdown-container" id="commercialConditionsContainer">
+                <button id="commercialConditionsTrigger" class="control-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span class="button-text">Condic. Comerciales</span>
+                    <svg style="width: 1rem; height: 1rem; margin-left: 0.25rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg>
+                </button>
+                <div id="commercialConditionsDropdown" class="action-dropdown-menu"></div>
+            </div>
+            <button class="control-button" id="btn-descargar-excel">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span class="button-text">Descargar Excel</span>
+            </button>
+            <div class="relative dropdown-container" id="notificationsContainer">
+                <button id="notificationsTrigger" class="control-button">
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        <div id="notification-badge" class="notification-badge" style="display: none;"></div>
+                    </div>
+                </button>
+                <div id="notificationsDropdown" class="action-dropdown-menu"></div>
+            </div>
+            <div class="relative dropdown-container" id="moreActionsContainer">
+                <button id="moreActionsTrigger" class="control-button">
+                    <span class="button-text">Más</span>
+                    <svg style="width: 1rem; height: 1rem; margin-left: 0.25rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg>
+                </button>
+                <div id="moreActionsDropdown" class="action-dropdown-menu"></div>
+            </div>
+            <button class="control-button primary" id="btn-nueva-venta">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Ingresar Nueva Venta
+            </button>
+        </div>
+    </div>
+    
+    <div class="table-wrapper">
+        <div class="table-header">
+            <div class="nav-tabs" id="navTabs"></div>
+            <div class="last-updated" id="last-updated"></div>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Marca</th>
+                    <th>ID Venta</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Estado</th>
+                    <th>Productos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modal-title">Detalles de la Venta</h3>
+            <button class="close-btn" onclick="window.closeModal('detailsModal')">&times;</button>
+        </div>
+        <div id="modal-body" class="modal-body"></div>
+    </div>
+</div>
+
+<!-- Iframe Modal -->
+<div id="iframeModal" class="modal">
+    <div class="modal-content iframe-modal-content">
+        <div class="modal-header">
+            <h3 id="iframe-modal-title"></h3>
+            <button class="close-btn" onclick="window.closeModal('iframeModal')">&times;</button>
+        </div>
+        <div class="iframe-container">
+            <iframe id="modal-iframe-content" src="about:blank"></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Button -->
+<button id="fab" class="fab">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+</button>
+
+<!-- Chat Widget -->
+<div id="chat-widget" class="chat-widget">
+    <div class="chat-header">
+        <span id="chat-title">Soporte</span>
+        <button id="close-chat" class="close-btn" style="color: white; font-size: 1.5rem;">&times;</button>
+    </div>
+    <div class="chat-body">
+        <div id="chat-options">
+            <p style="text-align: center; font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">¿Cómo podemos ayudarte?</p>
+            <button id="whatsapp-btn">Contactar por WhatsApp</button>
+            <button id="factibilidad-btn">Factibilidad</button>
+            <button id="assistant-btn">Asistente</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === CONFIGURACIÓN Y VARIABLES GLOBALES ===
+    const urlVentas = "https://docs.google.com/spreadsheets/d/1Jsrqu5GwB8fTaetBULmi4txQI2FPLEQUyLZbJ7OR5PQ/gviz/tq?tqx=out:json&sheet=Ventas";
+    
+    // ===== ZONA DE EDICIÓN: URL DE NOTIFICACIONES =====
+    // Coloca aquí el enlace a la hoja de cálculo de Google que contiene las notificaciones.
+    // La hoja debe tener las columnas: ID, Mensaje, Fecha, Leido (con 'TRUE' o 'FALSE')
+    const urlNotificaciones = "https://docs.google.com/spreadsheets/d/1_s_Lq-QBC8-0k-2S42-ASB01iUQ_A8-f-q_L-2jJ2zk/gviz/tq?tqx=out:json&sheet=Notificaciones"; // URL de ejemplo
+
+    //7///////////// ===== ZONA DE EDICIÓN: MENÚ "CONDICIONES COMERCIALES" =====  ///////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    const opcionesMenuCondiciones = [
+        { nombre: 'Políticas de Despacho', url: 'https://es.wikipedia.org/wiki/Log%C3%ADstica' },
+        { nombre: 'Términos de Servicio', url: 'https://es.wikipedia.org/wiki/T%C3%A9rminos_de_servicio' },
+        { nombre: 'Manual de Producto', url: 'https://es.wikipedia.org/wiki/Manual_de_usuario' },
+        { nombre: 'Guía de Estilo', url: 'https://es.wikipedia.org/wiki/Manual_de_estilo' },
+        { nombre: 'Protocolos de Atención', url: 'https://es.wikipedia.org/wiki/Servicio_de_atenci%C3%B3n_al_cliente' }
+    ];
+
+    // ===== ZONA DE EDICIÓN: MENÚ "MÁS" =====
+    const opcionesMenuMas = [
+        { nombre: 'Reporte Avanzado', url: 'https://es.wikipedia.org/wiki/Business_intelligence' },
+        { nombre: 'Metas de Venta', url: 'https://es.wikipedia.org/wiki/Venta' },
+        { nombre: 'Capacitaciones', url: 'https://es.wikipedia.org/wiki/Capacitaci%C3%B3n' },
+        { nombre: 'Herramientas', url: 'https://es.wikipedia.org/wiki/Herramienta' }
+    ];
+
+    const urlNuevaVenta = 'https://script.google.com/macros/s/AKfycbzJZ4y28c1gJCKC-VYmjal9JfAHAO6Ze03DbfSxV9VpahgDFCk8iUh89VfVJjP6YmG-/exec';
+
+    let allSalesData = [];
+    let allNotificationsData = [];
+    let currentViewData = [];
+    let filtroEstadoActual = '';
+    let filtroMarcaActual = 'all';
+
+    const clientIcons = {
+        user: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#4b5563;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
+        id_card: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#4b5563;"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line></svg>`,
+        phone: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#4b5563;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-7.01-7.01A19.79 19.79 0 0 1 2.05 4.11a2 2 0 0 1 1.72-2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`,
+        location: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#4b5563;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`
+    };
+
+    // === INICIALIZACIÓN DE LA APLICACIÓN ===
+    document.addEventListener('DOMContentLoaded', () => {
+        aplicarEstilosMovil();
+        cargarDatosVentas();
+        inicializarNotificaciones();
+        inicializarDropdowns();
+        inicializarChat();
+        document.getElementById('btn-descargar-excel').addEventListener('click', exportToExcel);
+        document.getElementById('btn-nueva-venta').addEventListener('click', () => window.openIframeModal(urlNuevaVenta, 'Ingresar Nueva Venta'));
+    });
+    
+    // === PANEL DIDÁCTICO PARA AJUSTES DE DISEÑO MÓVIL ===
+    function aplicarEstilosMovil() {
+        const configDisenoMovil = {
+            paddingCabecera: '1rem',
+            espacioEntreBotones: '0.75rem',
+            paddingModales: '1rem'
+        };
+        const { paddingCabecera, espacioEntreBotones, paddingModales } = configDisenoMovil;
+        const css = `
+            @media (max-width: 768px) {
+                .controls-header {
+                    padding: ${paddingCabecera};
+                    gap: ${espacioEntreBotones};
+                }
+                .control-group {
+                    gap: ${espacioEntreBotones};
+                }
+                .modal {
+                    padding: ${paddingModales};
+                }
+            }
+        `;
+        const styleElement = document.createElement('style');
+        styleElement.innerHTML = css;
+        document.head.appendChild(styleElement);
+    }
+
+    // === CARGA Y PROCESAMIENTO DE DATOS ===
+    async function cargarDatosVentas() {
+        document.getElementById('loading-overlay').classList.remove('hidden');
+        try {
+            const res = await fetch(urlVentas);
+            const texto = await res.text();
+            const json = parseGoogleSheetJSON(texto);
+
+            allSalesData = json.table.rows.map(f => f.c.map(c => c ? c.v : ''));
+            currentViewData = [...allSalesData];
+            
+            renderTable(currentViewData);
+            setupFilters();
+            updateLastUpdatedTime();
+
+        } catch (error) {
+            console.error("Error al cargar los datos de ventas:", error);
+            document.querySelector('.data-table tbody').innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">Error al cargar los datos.</td></tr>`;
+        } finally {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+    }
+
+    // === RENDERIZADO DE LA TABLA ===
+    function renderTable(data) {
+        const tableBody = document.querySelector('.data-table tbody');
+        tableBody.innerHTML = '';
+        if (data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; background-color: transparent;">No se encontraron ventas.</td></tr>`;
+            return;
+        }
+        data.forEach((row, index) => {
+            const [id, fecha, hora, marca, rut, nombre, tel, comuna, vendedorId, estado, detalleEstado, , productos] = row;
+            const statusClass = (estado || '').toLowerCase().replace(' ', '-');
+            const brandColor = getColorFromString(marca);
+            const formattedDate = formatDateInSpanish(fecha);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td data-label="Marca">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; justify-content: center;">
+                        <div class="logo-container" style="width: 32px; height: 32px; font-size: 0.9rem; background-color: ${brandColor}; flex-shrink: 0; margin: 0;">
+                            ${marca ? marca.charAt(0) : ''}
+                        </div>
+                        <span style="font-weight: 500;">${marca}</span>
+                    </div>
+                </td>
+                <td data-label="ID Venta" style="font-weight: 500;">${id}</td>
+                <td data-label="Fecha">${formattedDate}<br><span style="font-size: 0.75rem; color: #9ca3af;">${hora}</span></td>
+                <td data-label="Cliente">
+                    <div class="client-info">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span class="name">${clientIcons.user} ${nombre}</span>
+                            <span>${clientIcons.id_card} ${rut}</span>
+                            <span>${clientIcons.phone} ${tel}</span>
+                            <span>${clientIcons.location} ${comuna}</span>
+                        </div>
+                    </div>
+                </td>
+                <td data-label="Vendedor"><div>${vendedorId}</div><div style="font-size: 0.75rem; color: #6b7280;">Call Center</div></td>
+                <td data-label="Estado">
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: center;">
+                        <span class="status-badge ${statusClass}">${estado}</span>
+                        <span style="font-size: 0.75rem; color: #6b7280;">${detalleEstado}</span>
+                    </div>
+                </td>
+                <td data-label="Productos" style="font-weight: bold; font-size: 1.125rem;">${productos}</td>
+                <td data-label="Acciones">
+                    <button class="action-btn-table" title="Ver Detalle" onclick="window.openDetailsModal(${index})">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    // === LÓGICA DE FILTROS ===
+    function setupFilters() {
+        // Filtro de Búsqueda
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+        // Filtro de Marcas (Custom Select)
+        const brandContainer = document.getElementById('brandFilterContainer');
+        const marcas = ['Todas las marcas', ...new Set(allSalesData.map(row => row[3]).filter(Boolean))];
+        brandContainer.innerHTML = `
+            <button id="brandFilterTrigger" class="custom-select-trigger">
+                <span class="trigger-content">
+                    <svg style="color: #9ca3af; width: 1.25rem; height: 1.25rem;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H3v16h18V4z"/><path d="M3 10h18"/><path d="M12 4v16"/></svg>
+                    <span id="brandFilterValue">Todas las marcas</span>
+                </span>
+                <svg style="width: 1rem; height: 1rem; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg>
+            </button>
+            <div id="brandFilterOptions" class="custom-select-options">
+                ${marcas.map(m => `<div class="custom-select-option" data-value="${m === 'Todas las marcas' ? 'all' : m}">${m}</div>`).join('')}
+            </div>
+        `;
+        const brandTrigger = document.getElementById('brandFilterTrigger');
+        const brandOptions = document.getElementById('brandFilterOptions');
+        brandTrigger.addEventListener('click', e => {
+            e.stopPropagation();
+            closeAllDropdowns();
+            brandOptions.classList.toggle('is-open');
+        });
+        brandOptions.addEventListener('click', e => {
+            if (e.target.classList.contains('custom-select-option')) {
+                filtroMarcaActual = e.target.dataset.value;
+                document.getElementById('brandFilterValue').textContent = e.target.textContent;
+                brandOptions.classList.remove('is-open');
+                applyFilters();
+            }
+        });
+
+        // Filtros de Estado (Tabs y Mobile Select)
+        const estados = ['Listado', ...new Set(allSalesData.map(row => row[9]).filter(Boolean))];
+        document.getElementById('navTabs').innerHTML = estados.map(e => `<div class="tab ${e === 'Listado' ? 'active' : ''}" data-filter="${e === 'Listado' ? '' : e}">${e}</div>`).join('');
+        
+        /*
+          CORRECCIÓN: Se eliminó la referencia al 'mobileStatusFilter' que no existía.
+          La lógica de las pestañas (navTabs) ya maneja el filtro de estado.
+        */
+        
+        document.getElementById('navTabs').addEventListener('click', e => {
+            if (e.target.classList.contains('tab')) {
+                if(document.querySelector('.tab.active')) {
+                    document.querySelector('.tab.active').classList.remove('active');
+                }
+                e.target.classList.add('active');
+                filtroEstadoActual = e.target.dataset.filter;
+                applyFilters();
+            }
+        });
+    }
+
+    function applyFilters() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        
+        currentViewData = allSalesData.filter(row => {
+            const rowText = row.join(' ').toLowerCase();
+            const matchesSearch = rowText.includes(searchTerm);
+            const matchesBrand = filtroMarcaActual === 'all' || row[3] === filtroMarcaActual;
+            const matchesStatus = filtroEstadoActual === '' || row[9] === filtroEstadoActual;
+            return matchesSearch && matchesBrand && matchesStatus;
+        });
+        renderTable(currentViewData);
+    }
+
+    // === MODALES ===
+    window.openDetailsModal = function(index) {
+        const rowData = currentViewData[index];
+        const [id, , , , rut, nombre, tel, comuna, vendedorId] = rowData;
+        
+        document.getElementById('modal-title').textContent = `Detalle Venta #${id}`;
+        document.getElementById('modal-body').innerHTML = `
+            <div style="display:flex; justify-content:center; padding-bottom: 1rem;"><img src="https://placehold.co/100x100/EFEFEF/333333?text=${vendedorId.charAt(0)}" style="width: 6rem; height: 6rem; border-radius: 50%; border: 4px solid #f3f4f6; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+            <h4 style="font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem 0;">${vendedorId}</h4>
+            <div class="info-item"><strong>${clientIcons.user} Cliente</strong> <span>${nombre}</span></div>
+            <div class="info-item"><strong>${clientIcons.id_card} RUT</strong> <span>${rut}</span></div>
+            <div class="info-item"><strong>${clientIcons.phone} Teléfono</strong> <span>${tel}</span></div>
+            <div class="info-item"><strong>${clientIcons.location} Comuna</strong> <span>${comuna}</span></div>
+        `;
+        document.getElementById('detailsModal').classList.add('is-open');
+    }
+
+    window.openIframeModal = function(url, title) {
+        document.getElementById('iframe-modal-title').textContent = title;
+        document.getElementById('modal-iframe-content').src = url;
+        document.getElementById('iframeModal').classList.add('is-open');
+    }
+
+    window.closeModal = function(modalId) {
+        document.getElementById(modalId).classList.remove('is-open');
+        if (modalId === 'iframeModal') document.getElementById('modal-iframe-content').src = 'about:blank';
+    }
+
+    // === MENÚS DESPLEGABLES ===
+    function inicializarDropdowns() {
+        createDropdown('commercialConditionsTrigger', 'commercialConditionsDropdown', opcionesMenuCondiciones);
+        createDropdown('moreActionsTrigger', 'moreActionsDropdown', opcionesMenuMas);
+    }
+
+    function createDropdown(triggerId, menuId, options) {
+        const trigger = document.getElementById(triggerId);
+        const menu = document.getElementById(menuId);
+        menu.innerHTML = options.map(opt => `<button class="action-dropdown-button" data-url="${opt.url}" data-title="${opt.nombre}">${opt.nombre}</button>`).join('');
+        
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpening = !menu.classList.contains('is-open');
+            closeAllDropdowns();
+            if (isOpening) menu.classList.add('is-open');
+        });
+        
+        menu.addEventListener('click', e => {
+            if (e.target.tagName === 'BUTTON') {
+                window.openIframeModal(e.target.dataset.url, e.target.dataset.title);
+            }
+        });
+    }
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('.action-dropdown-menu.is-open, .custom-select-options.is-open').forEach(menu => {
+            menu.classList.remove('is-open');
+        });
+    }
+    
+    // === SISTEMA DE NOTIFICACIONES ===
+    function inicializarNotificaciones() {
+        cargarNotificaciones();
+        document.getElementById('notificationsTrigger').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const menu = document.getElementById('notificationsDropdown');
+            const isOpening = !menu.classList.contains('is-open');
+            closeAllDropdowns(); 
+            if(isOpening) {
+                menu.classList.add('is-open');
+                // Al abrir, se oculta el indicador de nuevas notificaciones
+                document.getElementById('notification-badge').style.display = 'none';
+            }
+        });
+    }
+
+    async function cargarNotificaciones() {
+        try {
+            const res = await fetch(urlNotificaciones);
+            const texto = await res.text();
+            const json = parseGoogleSheetJSON(texto);
+
+            // Suponemos columnas: 0:ID, 1:Mensaje, 2:Fecha, 3:Leido
+            allNotificationsData = json.table.rows.map(f => f.c.map(c => c ? c.v : ''));
+            
+            renderizarBandejaDeEntrada();
+            revisarNotificacionesNuevas();
+
+        } catch (error) {
+            console.error("Error al cargar las notificaciones:", error);
+            document.getElementById('notificationsDropdown').innerHTML = '<div class="notification-item"><p>Error al cargar notificaciones.</p></div>';
+        }
+    }
+
+    function renderizarBandejaDeEntrada() {
+        const container = document.getElementById('notificationsDropdown');
+        container.innerHTML = '';
+        if (allNotificationsData.length === 0) {
+            container.innerHTML = '<div class="notification-item"><p>No hay mensajes.</p></div>';
+            return;
+        }
+
+        allNotificationsData.forEach(notif => {
+            const [id, mensaje, fecha, leido] = notif;
+            const item = document.createElement('div');
+            item.className = 'notification-item';
+            // Si el mensaje no está leído (es 'FALSE'), se muestra en negrita
+            if (String(leido).toUpperCase() === 'FALSE') {
+                item.classList.add('unread');
+            }
+            item.innerHTML = `
+                <p>${mensaje}</p>
+                <span>${formatDateInSpanish(fecha)}</span>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+function revisarNotificacionesNuevas() {
+        // Suponemos que la columna 3 (índice 3) indica si el mensaje fue leído
+        const hayNuevas = allNotificationsData.some(notif => String(notif[3]).toUpperCase() === 'FALSE');
+        document.getElementById('notification-badge').style.display = hayNuevas ? 'block' : 'none';
+    }
+
+
+    // === CHAT WIDGET ===
+    function inicializarChat() {
+        const fab = document.getElementById('fab');
+        const chatWidget = document.getElementById('chat-widget');
+        fab.addEventListener('click', () => chatWidget.classList.toggle('is-open'));
+        document.getElementById('close-chat').addEventListener('click', () => chatWidget.classList.remove('is-open'));
+        window.addEventListener('click', (e) => {
+            if (!chatWidget.contains(e.target) && !fab.contains(e.target)) {
+                chatWidget.classList.remove('is-open');
+            }
+            closeAllDropdowns();
+        });
+
+        /*
+          CORRECCIÓN: Añadida la lógica para que los botones del chat funcionen.
+        */
+        document.getElementById('whatsapp-btn').addEventListener('click', () => {
+            // Reemplaza con tu URL de WhatsApp
+            window.open('https://api.whatsapp.com/send?phone=TU_NUMERO_AQUI', '_blank');
+        });
+        document.getElementById('factibilidad-btn').addEventListener('click', () => {
+            // Reemplaza con tu URL de Factibilidad
+            window.openIframeModal('https://es.wikipedia.org/wiki/Factibilidad', 'Factibilidad');
+        });
+        document.getElementById('assistant-btn').addEventListener('click', () => {
+            // Reemplaza con tu URL de Asistente
+            window.openIframeModal('https://es.wikipedia.org/wiki/Asistente_virtual', 'Asistente');
+        });
+    }
+
+    // === FUNCIONES AUXILIARES ===
+    function parseGoogleSheetJSON(rawText) {
+        const startIndex = rawText.indexOf('(');
+        const endIndex = rawText.lastIndexOf(')');
+        if (startIndex === -1 || endIndex === -1) {
+            throw new Error("Respuesta JSON no válida de la API de Google Sheets.");
+        }
+        const jsonString = rawText.substring(startIndex + 1, endIndex);
+        return JSON.parse(jsonString);
+    }
+    
+    function exportToExcel() {
+        const dataForExport = currentViewData.map(row => ({
+            'ID Venta': row[0], 'Fecha': row[1], 'Hora': row[2], 'Marca': row[3], 'RUT': row[4],
+            'Nombre Cliente': row[5], 'Teléfono': row[6], 'Comuna': row[7], 'Vendedor ID': row[8],
+            'Estado': row[9], 'Detalle Estado': row[10], 'Fecha Estado': row[11], 'Productos': row[12]
+        }));
+        const ws = XLSX.utils.json_to_sheet(dataForExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Ventas");
+        XLSX.writeFile(wb, "ReporteVentas.xlsx");
+    }
+
+    function updateLastUpdatedTime() {
+        const time = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('last-updated').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg> <span style="vertical-align: middle;">Última actualización: Hoy, ${time}</span>`;
+    }
+
+    function getColorFromString(str) {
+        if (!str) return '#6b7280';
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        let color = '#';
+        for (let i = 0; i < 3; i++) {
+            color += ('00' + ((hash >> (i * 8)) & 0xFF).toString(16)).substr(-2);
+        }
+        return color;
+    }
+    
+    function formatDateInSpanish(dateString) {
+        return dateString;
+    }
+</script>
+
+</body>
+</html>
