@@ -400,15 +400,15 @@
         color: #1f2937; 
     }
     
-    /* ===== MODALES ===== */
+   /* ===== MODALES ===== */
 
 /* Contenedor del modal */
 .modal {
     position: fixed; /* Fijo sobre la ventana, necesario para mover con top/left */
     top: 0; /* Posición vertical inicial (puede controlarse con porcentaje) */
     left: 0; /* Posición horizontal inicial (puede controlarse con porcentaje) */
-    width: 100%; /* Ancho completo de la pantalla (puede ajustarse con porcentaje) */
-    height: 100%; /* Alto completo de la pantalla (puede ajustarse con porcentaje) */
+    width: 100%; /* Ancho completo de la pantalla */
+    height: 100%; /* Alto completo de la pantalla */
     background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
     display: none; /* Inicialmente oculto, mostrar con clase .is-open */
     align-items: center; /* Centrado vertical del contenido */
@@ -428,10 +428,10 @@
     background-color: #ffffff; /* Fondo blanco */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Sombra alrededor */
     max-width: 500px; /* Ancho máximo */
-    width: 90%; /* Ancho relativo al contenedor (puede cambiarse con porcentaje) */
+    width: 90%; /* Ancho relativo al contenedor */
     height: auto; /* Altura automática según contenido */
     max-height: 90vh; /* Máximo alto según la ventana */
-    border-radius: 1.5rem; /* Bordes redondeados */
+    border-radius: 1.5rem; /* Bordes redondeados visibles */
     transform: scale(0.95); /* Escala inicial, se puede animar */
     opacity: 0; /* Invisible inicialmente */
     transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Animación suave */
@@ -454,10 +454,12 @@
 .modal-header {
     display: flex; /* Flex para organizar elementos */
     justify-content: space-between; /* Separar título y botón cerrar */
-    align-items: center; /* Centrar vertical */
+    align-items: center; /* Centrado vertical */
     padding: 1rem 1.5rem; /* Espaciado interno */
     border-bottom: 1px solid #e5e7eb; /* Separador inferior */
     flex-shrink: 0; /* No encoger al ajustar tamaño */
+    border-top-left-radius: 1.5rem; /* Borde redondeado superior izquierdo */
+    border-top-right-radius: 1.5rem; /* Borde redondeado superior derecho */
 }
 
 /* Título del modal */
@@ -480,6 +482,8 @@
 /* Body del modal */
 .modal-body { 
     padding: 1.5rem 2rem 2rem; /* Espaciado interno */
+    border-bottom-left-radius: 1.5rem; /* Borde redondeado inferior izquierdo */
+    border-bottom-right-radius: 1.5rem; /* Borde redondeado inferior derecho */
 }
 
 /* Item de información dentro del body */
@@ -513,12 +517,14 @@
     gap: 0; /* Sin espacio entre hijos */
     overflow: hidden; /* Ocultar overflow */
     text-align: left; /* Alineación izquierda */
+    border-radius: 1.5rem; /* Bordes redondeados para el iframe */
 }
 
 /* Contenedor del iframe */
 .iframe-container { 
     flex-grow: 1; /* Ocupa todo el espacio disponible */
     overflow: hidden; /* Ocultar overflow */
+    border-radius: 1.5rem; /* Bordes redondeados visibles */
 }
 
 /* Estilo del iframe */
@@ -526,6 +532,7 @@
     width: 100%; /* Ancho completo */
     height: 100%; /* Alto completo */
     border: 0; /* Sin borde */
+    border-radius: 1.5rem; /* Bordes redondeados visibles */
 }
 
 /* ======================
@@ -533,15 +540,16 @@
    ====================== */
 
 /* Comentarios:
-- Puedes controlar la posición del modal con:
-    modal.style.left = leftPercent + '%';
-    modal.style.top = topPercent + '%';
-- Puedes controlar ancho y alto del modal-content con:
-    modalContent.style.width = widthPercent + '%';
-    modalContent.style.height = heightPercent + 'px' o 'auto';
+- Este CSS pertenece a los modales "modal / modal-content".
+- Para mover el modal horizontalmente: modal.style.left = leftPercent + '%';
+- Para mover el modal verticalmente: modal.style.top = topPercent + '%';
+- Para cambiar ancho del modal: modalContent.style.width = widthPercent + '%';
+- Para cambiar alto del modal: modalContent.style.height = heightPercent + 'px' o 'auto';
 - Mantener todas las propiedades de color, borde y sombra para no perder el diseño.
 - Mantener la clase .is-open para animación y visibilidad.
+- Todos los bordes ahora están redondeados correctamente.
 */
+
     
     /* ===== BARRAS DE DESPLAZAMIENTO ===== */
     .modal-content::-webkit-scrollbar,
