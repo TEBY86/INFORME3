@@ -990,7 +990,7 @@
         <div class="control-group">
             <div class="relative dropdown-container" id="commercialConditionsContainer">
                 <button id="commercialConditionsTrigger" class="control-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     <span class="button-text">Condic. Comerciales</span>
                     <svg style="width: 1rem; height: 1rem; margin-left: 0.25rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg>
                 </button>
@@ -1307,7 +1307,7 @@
                 // Si se encuentra un logo (incluyendo .gif), usa <img>
                 // Usamos la clase base 'logo-container' y los estilos inline
                 logoHtml = `
-                    <div class="logo-container" style="width: 50px; height: 50px; flex-shrink: 0; margin: 0;">
+                    <div class="logo-container" style="width: 70px; height: 70px; flex-shrink: 0; margin: 0;">
                         <img 
                             src="${logoSrc}" 
                             alt="Logo ${marca}"
@@ -1318,7 +1318,7 @@
                 // Si no se encuentra, usa el fallback (círculo con letra)
                 // Usamos 'logo-container', 'is-letter', y los estilos inline
                 logoHtml = `
-                    <div class="logo-container is-letter" style="width: 50px; height: 50px; font-size: 0.9rem; background-color: ${brandColor}; flex-shrink: 0; margin: 0;">
+                    <div class="logo-container is-letter" style="width: 70px; height: 70px; font-size: 0.9rem; background-color: ${brandColor}; flex-shrink: 0; margin: 0;">
                         ${marca ? marca.charAt(0).toUpperCase() : '?'}
                     </div>`;
             }
