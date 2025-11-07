@@ -1164,13 +1164,14 @@
     // Los logos deben estar en una carpeta (ej. 'logos/') en tu servidor.
     // Soporta .png, .jpg, .svg, y .gif animados.
     const brandLogos = {
-        // EJEMPLOS (debes reemplazarlos con tus marcas y archivos):
-        "Entel": "logos/entel.gif",
-        "Claro": "logos/claro.png",
-        "Movistar": "logos/movistar.svg",
-        "WOM": "logos/wom-animado.gif" 
-        // Añade aquí todas tus marcas. Si una marca no está aquí,
-        // se mostrará el círculo con la letra como antes.
+        // (MODIFICADO) ¡Estos son los nombres de tu lista!
+        // Asegúrate de que los archivos se llamen 'entel.svg', 'wom.svg', etc.
+        "Entel": "logos/entel.svg",
+        "Claro": "logos/claro.svg", // o .png, .gif, etc.
+        "Movistar": "logos/movistar.svg", // o .png, .gif, etc.
+        "WOM": "logos/wom.svg" // o .png, .gif, etc.
+
+        // (EJEMPLOS ANTERIORES BORRADOS)
     };
     
     // ===== VARIABLES GLOBALES =====
@@ -1263,6 +1264,11 @@
                 currentViewData = [];
             }
             
+            // ===== (DEBUG ELIMINADO) =====
+            // El código de 'console.log' que estaba aquí se ha eliminado
+            // porque ya encontramos los nombres.
+            // ==============================
+            
             renderTable(currentViewData);
             setupFilters();
             updateLastUpdatedTime();
@@ -1302,7 +1308,11 @@
                 // Usamos la clase base 'logo-container' y los estilos inline
                 logoHtml = `
                     <div class="logo-container" style="width: 32px; height: 32px; flex-shrink: 0; margin: 0;">
-                        <img src="${logoSrc}" alt="Logo ${marca}">
+                        <img 
+                            src="${logoSrc}" 
+                            alt="Logo ${marca}"
+                            onerror="console.error('ERROR AL CARGAR: No se pudo encontrar ${logoSrc} para la marca ${marca}')"
+                        >
                     </div>`;
             } else {
                 // Si no se encuentra, usa el fallback (círculo con letra)
