@@ -212,13 +212,47 @@
         border-bottom-right-radius: 0.75rem; 
     }
     
-    /* ===== ELEMENTOS DE LA TABLA ===== */
+    /* ===== (MODIFICADO) ELEMENTOS DE LA TABLA (LOGOS) ===== */
     .logo-container {
-        width: 44px; height: 44px; border-radius: 50%;
+        /* Se mantiene el tamaño (controlado inline) y centrado */
         display: flex; justify-content: center; align-items: center;
-        font-size: 1.1rem; font-weight: 700; color: white;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         flex-shrink: 0; margin: 0 auto;
+        /* Se quita: border-radius, overflow, background, shadow */
+        /* Esto permite que la imagen de adentro tenga su propia forma */
+    }
+    
+    /* ======================================================
+      AQUÍ PUEDES CONTROLAR EL BORDE DEL LOGO (GIF/PNG)
+      Como solicitaste, esta sección está comentada.
+      ======================================================
+    */
+    .logo-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Mantiene la proporción del GIF */
+        
+        /* (MODIFICADO) Bordes redondeados (0 para que sea un cuadrado perfecto) */
+        border-radius: 0;
+
+        /* (OPCIONAL) Añade un borde a la imagen */
+        /* border: 2px solid #e5e7eb; */ /* Borde gris claro. Descomenta esta línea para activarlo. */
+        
+        /* (MODIFICADO) Sombra eliminada para un look limpio */
+        /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); */
+    }
+    /* ====================================================== */
+    
+    
+    /* Estilo para el fallback (letra) */
+    .logo-container.is-letter {
+        font-size: 1.1rem; 
+        font-weight: 700; 
+        color: white;
+        /* El fallback SÍ mantiene la forma de círculo */
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        background-color: #f0f2f5; /* Color de fondo para la letra */
+        /* El background-color se sobreescribe en el JS */
     }
     
     .status-badge {
@@ -1125,6 +1159,20 @@
     // URL para nueva venta
     const urlNuevaVenta = 'https://script.google.com/macros/s/AKfycbx5pVBkIII1wA-toDC5sryro4C52U3nbjloflGMvzYF6fSWenA09OOBJ7hf8zpAHgz-/exec';
     
+    // ===== (NUEVO) MAPA DE LOGOS DE MARCAS =====
+    // Asocia el nombre EXACTO de la marca en la DB con la ruta del logo.
+    // Los logos deben estar en una carpeta (ej. 'logos/') en tu servidor.
+    // Soporta .png, .jpg, .svg, y .gif animados.
+    const brandLogos = {
+        // EJEMPLOS (debes reemplazarlos con tus marcas y archivos):
+        "Entel": "logos/entel.gif",
+        "Claro": "logos/claro.png",
+        "Movistar": "logos/movistar.svg",
+        "WOM": "logos/wom-animado.gif" 
+        // Añade aquí todas tus marcas. Si una marca no está aquí,
+        // se mostrará el círculo con la letra como antes.
+    };
+    
     // ===== VARIABLES GLOBALES =====
     let allSalesData = [];
     let allNotificationsData = [];
@@ -1240,16 +1288,37 @@
         data.forEach((row, index) => {
             const [id, fecha, hora, marca, rut, nombre, tel, comuna, vendedorId, estado, detalleEstado, , productos] = row;
             const statusClass = (estado || '').toLowerCase().replace(' ', '-');
-            const brandColor = getColorFromString(marca);
+            const brandColor = getColorFromString(marca); // Se mantiene para el fallback
             const formattedDate = formatDateInSpanish(fecha);
+
+            // --- (NUEVO) Lógica de Logo ---
+            const logoSrc = brandLogos[marca]; // Busca el logo en el mapa
+            let logoHtml = '';
+            
+            // Usamos los estilos inline (width/height) que ya tenías
+            // en tu tabla para mantener el diseño.
+            if (logoSrc) {
+                // Si se encuentra un logo (incluyendo .gif), usa <img>
+                // Usamos la clase base 'logo-container' y los estilos inline
+                logoHtml = `
+                    <div class="logo-container" style="width: 32px; height: 32px; flex-shrink: 0; margin: 0;">
+                        <img src="${logoSrc}" alt="Logo ${marca}">
+                    </div>`;
+            } else {
+                // Si no se encuentra, usa el fallback (círculo con letra)
+                // Usamos 'logo-container', 'is-letter', y los estilos inline
+                logoHtml = `
+                    <div class="logo-container is-letter" style="width: 32px; height: 32px; font-size: 0.9rem; background-color: ${brandColor}; flex-shrink: 0; margin: 0;">
+                        ${marca ? marca.charAt(0).toUpperCase() : '?'}
+                    </div>`;
+            }
+            // --- Fin de Lógica de Logo ---
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td data-label="Marca">
                     <div style="display: flex; align-items: center; gap: 0.75rem; justify-content: center;">
-                        <div class="logo-container" style="width: 32px; height: 32px; font-size: 0.9rem; background-color: ${brandColor}; flex-shrink: 0; margin: 0;">
-                            ${marca ? marca.charAt(0) : ''}
-                        </div>
+                        ${logoHtml} <!-- (MODIFICADO) -->
                         <span style="font-weight: 500;">${marca}</span>
                     </div>
                 </td>
