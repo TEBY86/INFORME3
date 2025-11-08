@@ -879,42 +879,7 @@
    ---------------------- */
 
 /* Contenedor general del modal */
-.modal {
-    display: flex;               /* Flex para centrar contenido */
-    align-items: center;         /* Centra verticalmente */
-    justify-content: center;     /* Centra horizontalmente */
-    padding: 1rem;               /* Espacio interno */
-    position: fixed;             /* Fijo sobre la ventana */
-    top: 50%;                    /* Posición inicial vertical */
-    left: 50%;                   /* Posición inicial horizontal */
-    transform: translate(-50%, -50%); /* Centrado exacto */
-    width: 90%;                 /* Ocupa toda la pantalla */
-    height: 90%;                /* Ocupa toda la pantalla */
-    z-index: 999;                /* Encima de todo */
-    background: rgba(0,0,0,0.3); /* Fondo semitransparente */
-}
 
-/* Contenido interno del modal */
-.modal-content {
-    width: 95% !important;       /* Ancho máximo del contenido */
-    max-width: 95% !important;   /* No se expanda más allá */
-    margin: 0 auto;              /* Centrado horizontal */
-    position: absolute;          /* Posición absoluta dentro del modal */
-}
-
-/* Modal específico con ID iframeModal */
-.modal#iframeModal {
-    padding: 0;                  /* Sin padding extra */
-}
-
-/* Contenido del modal iframeModal */
-.modal#iframeModal .modal-content {
-    max-width: 100%;             /* Máximo ancho 100% */
-    width: 100%;                 /* Ancho completo */
-    height: 100%;                /* Altura completa */
-    max-height: 100vh;           /* No excede altura de ventana */
-    border-radius: 1.5;            /* Esquinas cuadradas */
-}
 
 /* ----------------------
    AQUI PUEDES INTEGRAR EL PANEL DIDÁCTICO
