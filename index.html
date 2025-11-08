@@ -436,6 +436,8 @@
     
    /* ===== MODALES ===== */
 
+/* ===== MODALES ===== */
+
 /* Contenedor del modal */
 .modal {
     position: fixed; /* Fijo sobre la ventana, necesario para mover con top/left */
@@ -474,6 +476,7 @@
     flex-direction: column; /* Contenido en columna */
     margin: auto; /* Centrado automático */
     text-align: left; /* Alineación del texto */
+    overflow: hidden; /* (ARREGLO) Corta contenido que se desborde */
     overflow-y: auto; /* Scroll vertical si el contenido excede */
     overflow-x: hidden; /* Oculta scroll horizontal */
 }
@@ -579,7 +582,7 @@
 - Para mover el modal verticalmente: modal.style.top = topPercent + '%';
 - Para cambiar ancho del modal: modalContent.style.width = widthPercent + '%';
 - Para cambiar alto del modal: modalContent.style.height = heightPercent + 'px' o 'auto';
-- Mantener todas las propiedades de color, borde y sombra para no perder el diseño.
+- Mantener todas las propiedades de color, borde y sombra para no no perder el diseño.
 - Mantener la clase .is-open para animación y visibilidad.
 - Todos los bordes ahora están redondeados correctamente.
 */
